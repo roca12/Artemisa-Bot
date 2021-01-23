@@ -1,169 +1,363 @@
 import discord
-from discord import Webhook, RequestsWebhookAdapter
 import os
 import requests
 import json
 import pytz
 import pymysql
-from datetime import datetime, timezone
+from datetime import datetime
 from replit import db
 from keep_alive import keep_alive
-from discord_webhook import DiscordWebhook, DiscordEmbed
 import re
 
-
 client = discord.Client()
-veredictos={"10" : "Submission error",
-"15" : "Can't be judged",
-"20" : "In queue",
-"30" : "Compile error",
-"35" : "Restricted function",
-"40" : "Runtime error",
-"45" : "Output limit",
-"50" : "Time limit",
-"60" : "Memory limit",
-"70" : "Wrong answer",
-"80" : "Presentation Error",
-"90" : "Accepted"}
+veredictos = {
+    "10": "Submission error",
+    "15": "```diff\n- Can't be judged\n```",
+    "20": "```diff\n- In queue\n```",
+    "30": "```diff\n- Compile error\n```",
+    "35": "```diff\n- Restricted function\n```",
+    "40": "```diff\n- Runtime error\n```",
+    "45": "```diff\n- Output limit\n```",
+    "50": "```diff\n- Time limit\n```",
+    "60": "```diff\n- Memory limit\n```",
+    "70": "```diff\n- Wrong answer\n```",
+    "80": "```diff\n- Presentation Error\n```",
+    "90": "```diff\n+ Accepted\n```"
+}
 
-lenguajesuva={"1":"ANSI C","2":"JAVA","3":"C++","4":"PASCAL","5":"C++11"}
+lenguajesuva = {
+    "1": "ANSI C",
+    "2": "JAVA",
+    "3": "C++",
+    "4": "PASCAL",
+    "5": "C++11"
+}
+
 
 def get_uvaid(uvausername):
-  response=requests.get("https://uhunt.onlinejudge.org/api/uname2uid/"+uvausername+"")
-  json_data=json.loads(response.text)
-  userid="El id del usuario "+uvausername+" es "+str(json_data)
-  return (userid)
+    response = requests.get("https://uhunt.onlinejudge.org/api/uname2uid/" +
+                            uvausername + "")
+    json_data = json.loads(response.text)
+    userid = "El id del usuario " + uvausername + " es " + str(json_data)
+    return (userid)
+
 
 def get_uvaidutil(uvausername):
-  response=requests.get("https://uhunt.onlinejudge.org/api/uname2uid/"+str(uvausername)+"")
-  json_data=json.loads(response.text)
-  userid=json_data
-  return (userid)
+    response = requests.get("https://uhunt.onlinejudge.org/api/uname2uid/" +
+                            str(uvausername) + "")
+    json_data = json.loads(response.text)
+    userid = json_data
+    return (userid)
+
 
 def get_lastsubsbyid(uvaid):
-  id=get_uvaidutil(uvaid);
-  response=requests.get("https://uhunt.onlinejudge.org/api/subs-user-last/"+str(id)+"/10")
-  print(id)
-  print("https://uhunt.onlinejudge.org/api/subs-user-last/"+str(id)+"/10")
-  json_data=json.loads(response.text)
-  res=""
-  res+="Ultimos 10 envíos de ***"+json_data['name']+"***\n----------------\n"
-  subs=json_data['subs']
-  for i in subs:
-    response2=requests.get("https://uhunt.onlinejudge.org/api/p/id/"+str(i[1]))
-    problem_data=json.loads(response2.text)
-    res+="Id de envío: "+str(i[0])+"\n"
-    res+="Id del problema: "+str(problem_data["num"])+"\n"
-    res+="Nombre del problema: "+str(problem_data["title"])+"\n"
-    res+="Veredicto: "+str(veredictos[str(i[2])])+"\n"
-    res+="Lenguaje: "+str(lenguajesuva[str(i[5])])+"\n"
-    res+="\n"
-  return res
+    id = get_uvaidutil(uvaid)
+    response = requests.get(
+        "https://uhunt.onlinejudge.org/api/subs-user-last/" + str(id) + "/10")
+    print(id)
+    print("https://uhunt.onlinejudge.org/api/subs-user-last/" + str(id) +
+          "/10")
+    json_data = json.loads(response.text)
+    res = ""
+    res += "Ultimos 10 envíos de ***" + json_data[
+        'name'] + "***\n----------------\n"
+    subs = json_data['subs']
+    for i in subs:
+        response2 = requests.get("https://uhunt.onlinejudge.org/api/p/id/" +
+                                 str(i[1]))
+        problem_data = json.loads(response2.text)
+        res += "Id de envío: " + str(i[0]) + "\n"
+        res += "Id del problema: " + str(problem_data["num"]) + "\n"
+        res += "Nombre del problema: " + str(problem_data["title"]) + "\n"
+        res += "Veredicto: " + str(veredictos[str(i[2])]) + "\n"
+        res += "Lenguaje: " + str(lenguajesuva[str(i[5])]) + "\n"
+        res += "\n"
+    return res
+
 
 @client.event
 async def on_ready():
-  print('Logueado como {0.user}'.format(client))
+    print('Logueado como {0.user}'.format(client))
+
 
 @client.event
 async def on_message(message):
-  if message.author==client.user:
-    return
+    if message.author == client.user:
+        return
 
-  if message.content.startswith('$hola'):
-    await message.channel.send('>>> Hola!! Soy el bot Discord del Sistema Artemis')
+    if message.content.startswith('$help') or message.content.startswith('$ayuda'):
+      embed = discord.Embed(
+          title="lIsta de comandos",  color=242424)
 
-  if message.content.startswith('$uvaid'):
-    rawid=message.content[7:]
-    print(rawid)
-    id=get_uvaid(rawid)
-    await message.channel.send(id)
-  
-  if message.content.startswith('$uvalastsubs'):
-    rawid=message.content[13:]
-    res=get_lastsubsbyid(rawid)
-    print(res)
-    await message.channel.send(">>> "+res)
+      embed.set_author(
+          name='Artemis BOT',
+          icon_url='https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+      )
+      embed.add_field(name="$help o &ayuda", value="Muestra la lista de comandos del BOT", inline=False)
+      embed.add_field(name="$hola", value="El bot te saluda", inline=False)
+      embed.add_field(name="$uvaid [uvausername]", value="Retorna el id de la cuenta de UVa Online Judge", inline=False)
+      embed.add_field(name="$uvalastsubs  [uvausername]", value="Retorna los ultimos 10 envios de la cuenta de UVa Online Judge", inline=False)
+      embed.add_field(name="$fecha", value="Muestra la fecha y hora actual", inline=False)
+      embed.add_field(name="$test", value="Testea la conexión a la base de datos", inline=False)
+      embed.add_field(name="$listatemas [pagina]", value="Muestra la lista de temas dentro de la base de datos (Paginas desde la 1 a la 5, cualquier otro numero no es valido)", inline=False)
 
-  if message.content.startswith('$fecha'):
-    COL = pytz.timezone('America/Bogota')
-    today = datetime.now(tz=COL)
-    res=today.strftime("%d/%m/%Y %H:%M:%S")
-    await message.channel.send(">>> La fecha y hora actual es: "+str(res))
+      await message.channel.send(embed=embed)
 
-  if message.content.startswith('$test'):
-    #https://discord.com/api/webhooks/802272889143033956/OOUuN1wyWa-c82Ez50rxqf7HRMz_IWt-_6xIW0i6vVf8xy-UhprL_oe0_v9ReFx3X--o
-    webhook = DiscordWebhook(url='https://discord.com/api/webhooks/802272889143033956/OOUuN1wyWa-c82Ez50rxqf7HRMz_IWt-_6xIW0i6vVf8xy-UhprL_oe0_v9ReFx3X--o')
+    if message.content.startswith('$hola'):
+        await message.channel.send(
+            '>>> Hola!! Soy el bot Discord del Sistema Artemis')
 
-    # create embed object for webhook
-    embed = DiscordEmbed(title='Your Title', description='Lorem ipsum dolor sit', color=242424)
+    if message.content.startswith('$uvaid'):
+        rawid = message.content[7:]
+        print(rawid)
+        id = get_uvaid(rawid)
+        await message.channel.send(id)
 
-    # set author
-    embed.set_author(name='Guia del programador competitivo', icon_url='https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg')
+    if message.content.startswith('$uvalastsubs'):
+        rawid = message.content[13:]
+        res = get_lastsubsbyid(rawid)
+        print(res)
+        embed = discord.Embed(title=rawid, description=res, color=242424)
 
-    # set image
-    embed.set_image(url='https://image.freepik.com/vector-gratis/libro-blanco-sobre-fondo-blanco_1308-23052.jpg')
+        embed.set_author(name='Online Judge')
 
-    # set thumbnail
-    embed.set_thumbnail(url='https://res.cloudinary.com/dw0butj4g/image/upload/v1611348303/gpc_nhaobw.jpg')
+        embed.set_thumbnail(
+            url=
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJgISMZhBm1WWetW5JWIgcGGhTv6y5O8JBKQ&usqp=CAUhttps://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJgISMZhBm1WWetW5JWIgcGGhTv6y5O8JBKQ&usqp=CAU'
+        )
 
-    # set footer
-    embed.set_footer(text='Diego Rodriguez')
+        embed.set_footer(text='Programación competitiva')
 
-    # set timestamp (default is now)
-    embed.set_timestamp()
+        await message.channel.send(embed=embed)
 
-    # add fields to embed
-    ##embed.add_embed_field(name='Field 1', value='Lorem ipsum')
-    ##embed.add_embed_field(name='Field 2', value='dolor sit')
+    if message.content.startswith('$fecha'):
+        COL = pytz.timezone('America/Bogota')
+        today = datetime.now(tz=COL)
+        res = today.strftime("%d/%m/%Y %H:%M:%S")
+        await message.channel.send(">>> La fecha y hora actual es: " +
+                                   str(res))
 
-    # add embed object to webhook
-    webhook.add_embed(embed)
+    if message.content.startswith('$test'):
+        miConexion = pymysql.connect(
+            host='freedb.tech',
+            user='freedbtech_main',
+            passwd='ecciccpl2015',
+            db='freedbtech_artemis')
+        cur = miConexion.cursor()
+        cur.execute(
+            "SELECT tema,texto FROM temario where tema='Binary Search' ")
+        for i in cur.fetchall():
+            lista = list(i)
 
-    response = webhook.execute()
+            notag = re.sub("<.*?>", " ", lista[1])
+            #### Create the initial embed object ####
+            embed = discord.Embed(
+                title=lista[0], description=notag, color=242424)
+            lista[0] = lista[0].replace(' ', '%20')
+            # set author
+            embed.set_author(
+                name='Guia del programador competitivo',
+                icon_url=
+                'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+            )
 
-  if message.content.startswith('$bdtest'):
-    miConexion = pymysql.connect( host='freedb.tech', user= 'freedbtech_main', passwd='ecciccpl2015', db='freedbtech_artemis' )
-    cur = miConexion.cursor()
-    cur.execute( "SELECT tema,texto FROM temario where tema='Binary Search' ")
-    for i in cur.fetchall() :
-          lista=list(i)
-          
-          notag = re.sub("<.*?>", " ", lista[1])
-          #https://discord.com/api/webhooks/802272889143033956/OOUuN1wyWa-c82Ez50rxqf7HRMz_IWt-_6xIW0i6vVf8xy-UhprL_oe0_v9ReFx3X--o
-          webhook = DiscordWebhook(url='https://discord.com/api/webhooks/802272889143033956/OOUuN1wyWa-c82Ez50rxqf7HRMz_IWt-_6xIW0i6vVf8xy-UhprL_oe0_v9ReFx3X--o')
+            url2 = 'https://res.cloudinary.com/dw0butj4g/image/upload/v1611352499/' + str(
+                lista[0]) + '.png'
 
-          # create embed object for webhook
-          embed = DiscordEmbed(title=lista[0], description=notag, color=242424)
-          lista[0]=lista[0].replace(' ','%20')
+            print(url2)
+            # set image
+            embed.set_image(url=url2)
+
+            # set thumbnail
+            embed.set_thumbnail(
+                url=
+                'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348303/gpc_nhaobw.jpg'
+            )
+
+            # set footer
+            embed.set_footer(text='Diego Rodriguez')
+            miConexion.close()
+        await message.channel.send(embed=embed)
+
+    if message.content.startswith('$listatemas'):
+        page = int(message.content[12:])-1
+        print (page)
+        if page==0:
+          miConexion = pymysql.connect(
+              host='freedb.tech',
+              user='freedbtech_main',
+              passwd='ecciccpl2015',
+              db='freedbtech_artemis')
+          cur = miConexion.cursor()
+          cur.execute(
+              "SELECT tema FROM temario  where id<100 ORDER BY id limit 100 ")
+          aux = ""
+          for i in cur.fetchall():
+              lista = list(i)
+              aux += str(lista[0]) + "\n"
+          embed = discord.Embed(
+              title="Lista de temas ***pagina 1 de 5*** ", description=aux, color=242424)
           # set author
-          embed.set_author(name='Guia del programador competitivo', icon_url='https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg')
-
-          url2='https://res.cloudinary.com/dw0butj4g/image/upload/v1611352499/'+str(lista[0])+'.png'
-          
-          print(url2)
-          # set image
-          embed.set_image(url=url2)
-
+          embed.set_author(
+              name='Guia del programador competitivo',
+              icon_url=
+              'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+          )
           # set thumbnail
-          embed.set_thumbnail(url='https://res.cloudinary.com/dw0butj4g/image/upload/v1611348303/gpc_nhaobw.jpg')
-
+          embed.set_thumbnail(
+              url=
+              'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348303/gpc_nhaobw.jpg'
+          )
           # set footer
-          embed.set_footer(text='Diego Rodriguez')
+          embed.set_footer(
+              text='Programación competitiva',
+              icon_url=
+              'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+          )
+          miConexion.close()
+          await message.channel.send(embed=embed)
+        elif page==1:
+          miConexion = pymysql.connect(
+              host='freedb.tech',
+              user='freedbtech_main',
+              passwd='ecciccpl2015',
+              db='freedbtech_artemis')
+          cur = miConexion.cursor()
+          cur.execute(
+              "SELECT tema FROM temario  where id between 100 and 150  ORDER BY id limit 100"
+          )
+          aux = ""
+          for i in cur.fetchall():
+              lista = list(i)
+              aux += str(lista[0]) + "\n"
+          embed = discord.Embed(
+              title="Lista de temas ***pagina 2 de 5*** ", description=aux, color=242424)
+          # set author
+          embed.set_author(
+              name='Guia del programador competitivo',
+              icon_url=
+              'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+          )
+          # set thumbnail
+          embed.set_thumbnail(
+              url=
+              'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348303/gpc_nhaobw.jpg'
+          )
+          # set footer
+          embed.set_footer(
+              text='Programación competitiva',
+              icon_url=
+              'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+          )
+          miConexion.close()
+          await message.channel.send(embed=embed)
+        elif page==2:
+          miConexion = pymysql.connect(
+              host='freedb.tech',
+              user='freedbtech_main',
+              passwd='ecciccpl2015',
+              db='freedbtech_artemis')
+          cur = miConexion.cursor()
+          cur.execute(
+              "SELECT tema FROM temario  where id between 150 and 200  ORDER BY id limit 100"
+          )
+          aux = ""
+          for i in cur.fetchall():
+              lista = list(i)
+              aux += str(lista[0]) + "\n"
+          embed = discord.Embed(
+              title="Lista de temas ***pagina 3 de 5*** ", description=aux, color=242424)
+          # set author
+          embed.set_author(
+              name='Guia del programador competitivo',
+              icon_url=
+              'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+          )
+          # set thumbnail
+          embed.set_thumbnail(
+              url=
+              'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348303/gpc_nhaobw.jpg'
+          )
+          # set footer
+          embed.set_footer(
+              text='Programación competitiva',
+              icon_url=
+              'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+          )
+          miConexion.close()
+          await message.channel.send(embed=embed)
+        if page==3:
+          miConexion = pymysql.connect(
+              host='freedb.tech',
+              user='freedbtech_main',
+              passwd='ecciccpl2015',
+              db='freedbtech_artemis')
+          cur = miConexion.cursor()
+          cur.execute(
+              "SELECT tema FROM temario  where id between 200 and 250  ORDER BY id limit 100"
+          )
+          aux = ""
+          for i in cur.fetchall():
+              lista = list(i)
+              aux += str(lista[0]) + "\n"
+          embed = discord.Embed(
+              title="Lista de temas ***pagina 4 de 5*** ", description=aux, color=242424)
+          # set author
+          embed.set_author(
+              name='Guia del programador competitivo',
+              icon_url=
+              'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+          )
+          # set thumbnail
+          embed.set_thumbnail(
+              url=
+              'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348303/gpc_nhaobw.jpg'
+          )
+          # set footer
+          embed.set_footer(
+              text='Programación competitiva',
+              icon_url=
+              'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+          )
+          miConexion.close()
+          await message.channel.send(embed=embed)
+        if page==4:
+          miConexion = pymysql.connect(
+              host='freedb.tech',
+              user='freedbtech_main',
+              passwd='ecciccpl2015',
+              db='freedbtech_artemis')
+          cur = miConexion.cursor()
+          cur.execute(
+              "SELECT tema FROM temario  where id> 250  ORDER BY id limit 100")
+          aux = ""
+          for i in cur.fetchall():
+              lista = list(i)
+              aux += str(lista[0]) + "\n"
+          embed = discord.Embed(
+              title="Lista de temas ***pagina 5 de 5*** ", description=aux, color=242424)
+          # set author
+          embed.set_author(
+              name='Guia del programador competitivo',
+              icon_url=
+              'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+          )
+          # set thumbnail
+          embed.set_thumbnail(
+              url=
+              'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348303/gpc_nhaobw.jpg'
+          )
+          # set footer
+          embed.set_footer(
+              text='Programación competitiva',
+              icon_url=
+              'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+          )
+          miConexion.close()
+          await message.channel.send(embed=embed)
+    
 
-          # set timestamp (default is now)
-          embed.set_timestamp()
-
-          # add fields to embed
-          ##embed.add_embed_field(name='Field 1', value='Lorem ipsum')
-          ##embed.add_embed_field(name='Field 2', value='dolor sit')
-
-          # add embed object to webhook
-          webhook.add_embed(embed)
-
-          response = webhook.execute()
-    miConexion.close()
 
 
 keep_alive()
 client.run(os.getenv('TOKEN'))
-
