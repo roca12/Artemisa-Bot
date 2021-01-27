@@ -6,7 +6,6 @@ import pytz
 import pymysql
 import sqlite3
 from datetime import datetime
-from replit import db
 from keep_alive import keep_alive
 import re
 
@@ -98,9 +97,11 @@ async def on_message(message):
         embed.add_field(name="$help o &ayuda",
                         value="Muestra la lista de comandos del BOT",
                         inline=False)
-        embed.add_field(name="$uvaid [uvausername]",
-                        value="(Solo Universidad ECCI) Retorna el id de la cuenta de UVa Online Judge",
-                        inline=False)
+        embed.add_field(
+            name="$uvaid [uvausername]",
+            value=
+            "(Solo Universidad ECCI) Retorna el id de la cuenta de UVa Online Judge",
+            inline=False)
         embed.add_field(
             name="$uvalastsubs  [uvausername]",
             value=
@@ -142,6 +143,26 @@ async def on_message(message):
             value=
             "(Solo profesores y administrador) borra las listas de entrada y salida de participantes",
             inline=False)
+        embed.add_field(
+            name="$pregunta",
+            value=
+            "(profesores y administrador) crear una nueva pregunta para que los estudiantes respondan\n(Estudiantes) ver la pregunta actualmente asignada",
+            inline=False)
+        embed.add_field(
+            name="$respuesta",
+            value=
+            "(Solo IED LOS ALPES) Ingresar una respuesta a la pregunta asignada",
+            inline=False)
+        embed.add_field(
+            name="$borrarpreguntarespuestas",
+            value=
+            "(Solo profesores y administrador) borrar la pregunta y las respuestas de la base de datos",
+            inline=False)
+        embed.add_field(
+            name="$listarespuestas",
+            value=
+            "(Solo profesores y administrador) Mostrar las respuestas de todos los participantes",
+            inline=False)
 
         await message.channel.send(embed=embed)
 
@@ -158,50 +179,51 @@ async def on_message(message):
 
         con = sqlite3.connect('mydatabase.db')
         cursorObj = con.cursor()
-        cursorObj.execute('SELECT * FROM saludos where name ="'+usuario+'"')
+        cursorObj.execute('SELECT * FROM saludos where name ="' + usuario +
+                          '"')
         rows = cursorObj.fetchall()
-        if (len(rows)==0):
-          cursorObj = con.cursor()
-          COL = pytz.timezone('America/Bogota')
-          today = datetime.now(tz=COL)
-          res = today.strftime("%d/%m/%Y %H:%M:%S")
-          cursorObj.execute('SELECT COUNT(*) from saludos')
-          cur_result = cursorObj.fetchone()
-          rows = cur_result[0]
-          entities = (rows + 1, usuario, str(res))
-          cursorObj.execute(
-              'INSERT INTO saludos(id, name, fecha) VALUES(?, ?, ?)', entities)
-          con.commit()
-          embed = discord.Embed(title="Registro de " + usuario, color=242424)
+        if (len(rows) == 0):
+            cursorObj = con.cursor()
+            COL = pytz.timezone('America/Bogota')
+            today = datetime.now(tz=COL)
+            res = today.strftime("%d/%m/%Y %H:%M:%S")
+            cursorObj.execute('SELECT COUNT(*) from saludos')
+            cur_result = cursorObj.fetchone()
+            rows = cur_result[0]
+            entities = (rows + 1, usuario, str(res))
+            cursorObj.execute(
+                'INSERT INTO saludos(id, name, fecha) VALUES(?, ?, ?)',
+                entities)
+            con.commit()
+            embed = discord.Embed(title="Registro de " + usuario, color=242424)
 
-          embed.set_author(
-              name='Artemis BOT',
-              icon_url=
-              'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
-          )
+            embed.set_author(
+                name='Artemis BOT',
+                icon_url=
+                'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+            )
 
-          embed.add_field(name="Registro correcto *(ENTRADA)*",
-                          value=usuario +
-                          " ha registrado su entrada a clase, disfrutala :D",
-                          inline=False)
+            embed.add_field(name="Registro correcto *(ENTRADA)*",
+                            value=usuario +
+                            " ha registrado su entrada a clase, disfrutala :D",
+                            inline=False)
 
-          await message.channel.send(embed=embed)
+            await message.channel.send(embed=embed)
         else:
-          embed = discord.Embed(title="Registro duplicado", color=242424)
+            embed = discord.Embed(title="Registro duplicado", color=242424)
 
-          embed.set_author(
-              name='Artemis BOT',
-              icon_url=
-              'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
-          )
+            embed.set_author(
+                name='Artemis BOT',
+                icon_url=
+                'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+            )
 
-          embed.add_field(name="Error",
-                          value=usuario +
-                          " Ya ha registrado una entrada",
-                          inline=False)
+            embed.add_field(name="Error",
+                            value=usuario + " Ya ha registrado una entrada",
+                            inline=False)
 
-          await message.channel.send(embed=embed)
-          
+            await message.channel.send(embed=embed)
+
     if message.content.startswith('$chao'):
         usuario = message.author.display_name
         print(usuario)
@@ -216,49 +238,51 @@ async def on_message(message):
 
         con = sqlite3.connect('mydatabase.db')
         cursorObj = con.cursor()
-        cursorObj.execute('SELECT * FROM salidas where name ="'+usuario+'"')
+        cursorObj.execute('SELECT * FROM salidas where name ="' + usuario +
+                          '"')
         rows = cursorObj.fetchall()
-        if (len(rows)==0):
-          cursorObj = con.cursor()
-          COL = pytz.timezone('America/Bogota')
-          today = datetime.now(tz=COL)
-          res = today.strftime("%d/%m/%Y %H:%M:%S")
-          cursorObj.execute('SELECT COUNT(*) from saludos')
-          cur_result = cursorObj.fetchone()
-          rows = cur_result[0]
-          entities = (rows + 1, usuario, str(res))
-          cursorObj.execute(
-              'INSERT INTO salidas(id, name, fecha) VALUES(?, ?, ?)', entities)
-          con.commit()
-          embed = discord.Embed(title="Registro de " + usuario, color=242424)
+        if (len(rows) == 0):
+            cursorObj = con.cursor()
+            COL = pytz.timezone('America/Bogota')
+            today = datetime.now(tz=COL)
+            res = today.strftime("%d/%m/%Y %H:%M:%S")
+            cursorObj.execute('SELECT COUNT(*) from saludos')
+            cur_result = cursorObj.fetchone()
+            rows = cur_result[0]
+            entities = (rows + 1, usuario, str(res))
+            cursorObj.execute(
+                'INSERT INTO salidas(id, name, fecha) VALUES(?, ?, ?)',
+                entities)
+            con.commit()
+            embed = discord.Embed(title="Registro de " + usuario, color=242424)
 
-          embed.set_author(
-              name='Artemis BOT',
-              icon_url=
-              'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
-          )
+            embed.set_author(
+                name='Artemis BOT',
+                icon_url=
+                'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+            )
 
-          embed.add_field(name="Registro correcto *(SALIDA)*",
-                          value=usuario +
-                          " ha registrado su salida a clase, nos vemos la proxima :D",
-                          inline=False)
+            embed.add_field(
+                name="Registro correcto *(SALIDA)*",
+                value=usuario +
+                " ha registrado su salida a clase, nos vemos la proxima :D",
+                inline=False)
 
-          await message.channel.send(embed=embed)
+            await message.channel.send(embed=embed)
         else:
-          embed = discord.Embed(title="Registro duplicado", color=242424)
+            embed = discord.Embed(title="Registro duplicado", color=242424)
 
-          embed.set_author(
-              name='Artemis BOT',
-              icon_url=
-              'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
-          )
+            embed.set_author(
+                name='Artemis BOT',
+                icon_url=
+                'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+            )
 
-          embed.add_field(name="Error",
-                          value=usuario +
-                          " Ya ha registrado una salida",
-                          inline=False)
+            embed.add_field(name="Error",
+                            value=usuario + " Ya ha registrado una salida",
+                            inline=False)
 
-          await message.channel.send(embed=embed)
+            await message.channel.send(embed=embed)
 
     if message.content.startswith('$listaestudiantesentrada'):
         roles = message.author.roles
@@ -602,6 +626,241 @@ async def on_message(message):
             miConexion.close()
             await message.channel.send(embed=embed)
 
+    if message.content.startswith('$pregunta'):
+        roles = message.author.roles
+        admin = False
+        for rol in roles:
+            if rol.name == 'Administrador' or rol.name == 'Profesor':
+                admin = True
+                break
+        if admin:
+            p = message.content[10:]
+            print(p)
+            con = sqlite3.connect('mydatabase.db')
 
+            cursorObj = con.cursor()
+            cursorObj.execute(
+                "CREATE TABLE if not exists pregunta(id integer PRIMARY KEY, preg text, fecha text)"
+            )
+            con.commit()
+
+            con = sqlite3.connect('mydatabase.db')
+            cursorObj = con.cursor()
+            cursorObj.execute('SELECT * FROM pregunta')
+            rows = cursorObj.fetchall()
+            if (len(rows) == 0):
+                cursorObj = con.cursor()
+                COL = pytz.timezone('America/Bogota')
+                today = datetime.now(tz=COL)
+                res = today.strftime("%d/%m/%Y %H:%M:%S")
+                cursorObj.execute('SELECT COUNT(*) from pregunta')
+                cur_result = cursorObj.fetchone()
+                rows = cur_result[0]
+                entities = (rows + 1, p, str(res))
+                cursorObj.execute(
+                    'INSERT INTO pregunta(id, preg, fecha) VALUES(?, ?, ?)',
+                    entities)
+                con.commit()
+                embed = discord.Embed(title="Pregunta registrada",
+                                      color=242424)
+
+                embed.set_author(
+                    name='Artemis BOT',
+                    icon_url=
+                    'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+                )
+
+                embed.add_field(name="Registro correcto *(PREGUNTA)*",
+                                value=p,
+                                inline=False)
+
+                await message.channel.send(embed=embed)
+            else:
+                embed = discord.Embed(title="Ya se ha registrado una pregunta",
+                                      color=242424)
+
+                embed.set_author(
+                    name='Artemis BOT',
+                    icon_url=
+                    'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+                )
+
+                embed.add_field(name="Error", value=p, inline=False)
+
+                await message.channel.send(embed=embed)
+        else:
+            p = message.content[10:]
+            print(p)
+            con = sqlite3.connect('mydatabase.db')
+            cursorObj = con.cursor()
+            cursorObj.execute('SELECT * FROM pregunta')
+            rows = cursorObj.fetchall()
+            if (len(rows) == 0):
+                embed = discord.Embed(title="No hay pregunta", color=242424)
+
+                embed.set_author(
+                    name='Artemis BOT',
+                    icon_url=
+                    'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+                )
+
+                embed.add_field(
+                    name="*El profesor aun no coloca una pregunta*",
+                    value=".",
+                    inline=False)
+
+                await message.channel.send(embed=embed)
+            else:
+                embed = discord.Embed(title="Pregunta", color=242424)
+
+                embed.set_author(
+                    name='Artemis BOT',
+                    icon_url=
+                    'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+                )
+
+                embed.add_field(name="La pregunta es:" + str(rows[0][1]),
+                                value=p,
+                                inline=False)
+
+                await message.channel.send(embed=embed)
+
+    if message.content.startswith('$respuesta'):
+        r = p = message.content[11:]
+        usuario = message.author.display_name
+        print(usuario + " " + r)
+        con = sqlite3.connect('mydatabase.db')
+        cursorObj = con.cursor()
+        cursorObj.execute('SELECT COUNT(*) from pregunta')
+        cur_result = cursorObj.fetchone()
+        rows = cur_result[0]
+        if rows == 0:
+            embed = discord.Embed(title="ERROR", color=242424)
+            embed.set_author(
+                name='Artemis BOT',
+                icon_url=
+                'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+            )
+
+            embed.add_field(name="Error",
+                            value="No hay pregunta registrada",
+                            inline=False)
+
+            await message.channel.send(embed=embed)
+        else:
+            cursorObj = con.cursor()
+            cursorObj.execute(
+                "CREATE TABLE if not exists respuestas(id integer PRIMARY KEY, name text, fecha text, respuesta text)"
+            )
+            con.commit()
+
+            con = sqlite3.connect('mydatabase.db')
+            cursorObj = con.cursor()
+            cursorObj.execute('SELECT * FROM respuestas where name ="' +
+                              usuario + '"')
+            rows = cursorObj.fetchall()
+            if (len(rows) == 0):
+                cursorObj = con.cursor()
+                COL = pytz.timezone('America/Bogota')
+                today = datetime.now(tz=COL)
+                res = today.strftime("%d/%m/%Y %H:%M:%S")
+                cursorObj.execute('SELECT COUNT(*) from saludos')
+                cur_result = cursorObj.fetchone()
+                rows = cur_result[0]
+                entities = (rows + 1, usuario, str(res), r)
+                cursorObj.execute(
+                    'INSERT INTO respuestas(id, name, fecha,respuesta) VALUES(?, ?, ?,?)',
+                    entities)
+                con.commit()
+                embed = discord.Embed(title="Registro de " + usuario,
+                                      color=242424)
+
+                embed.set_author(
+                    name='Artemis BOT',
+                    icon_url=
+                    'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+                )
+
+                embed.add_field(
+                    name="Registro correcto *(RESPUESTA)*",
+                    value=usuario +
+                    " ha registrado su respuesta a la pregunta, gran trabajo",
+                    inline=False)
+
+                await message.channel.send(embed=embed)
+            else:
+                embed = discord.Embed(title="Registro duplicado", color=242424)
+
+                embed.set_author(
+                    name='Artemis BOT',
+                    icon_url=
+                    'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+                )
+
+                embed.add_field(name="Error",
+                                value=usuario +
+                                " Ya ha registrado una respuesta",
+                                inline=False)
+
+                await message.channel.send(embed=embed)
+
+    if message.content.startswith('$borrarpreguntarespuesta'):
+        roles = message.author.roles
+        admin = False
+        for rol in roles:
+            if rol.name == 'Administrador' or rol.name == 'Profesor':
+                admin = True
+                break
+        if admin:
+            con = sqlite3.connect('mydatabase.db')
+            cursorObj = con.cursor()
+
+            try:
+                cursorObj.execute('DELETE FROM pregunta')
+                cursorObj.execute('DELETE FROM respuestas')
+                con.commit()
+                await message.channel.send(
+                    '>>> Pregunta y respuestas borradas correctamente, listos para la siguiente pregunta\n'
+                )
+            except sqlite3.Error:
+                print(sqlite3.Error)
+                await message.channel.send(
+                    '>>> Error al borrar la pregunta y las respuestas, puede que ya hayan sido borradas\n'
+                )
+        else:
+            await message.channel.send(
+                ">>> No tienes permisos para ejecutar este comando")
+
+    if message.content.startswith('$listarespuestas'):
+        roles = message.author.roles
+        admin = False
+        for rol in roles:
+            if rol.name == 'Administrador' or rol.name == 'Profesor':
+                admin = True
+                break
+        if admin:
+            con = sqlite3.connect('mydatabase.db')
+            cursorObj = con.cursor()
+            cursorObj.execute('SELECT * FROM respuestas')
+            embed = discord.Embed(title="Lista de respuestas (Participantes)",
+                                  color=242424)
+
+            embed.set_author(
+                name='Artemis BOT',
+                icon_url=
+                'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
+            )
+            rows = cursorObj.fetchall()
+
+            if len(rows) == 0:
+                await message.channel.send('>>> --- No hay datos :3 ---\n')
+            for row in rows:
+                embed.add_field(name=row[1],
+                                value=row[2] + " -> " + row[3],
+                                inline=False)
+            await message.channel.send(embed=embed)
+        else:
+            await message.channel.send(
+                ">>> No tienes permisos para ejecutar este comando")
 keep_alive()
 client.run(os.getenv('TOKEN'))
