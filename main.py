@@ -125,7 +125,7 @@ async def on_message(message):
         embed.add_field(
             name="$chao",
             value=
-            "(Solo IED LOS ALPES) Registra tu salida en la base de datos (Usalo cuando vayas a salir a una clase)",
+            "(Solo IED LOS ALPES) Registra tu salida en la base de datos (Usalo cuando vayas a salir de una clase)",
             inline=False)
         embed.add_field(
             name="$listaestudiantesentrada",
