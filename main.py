@@ -246,7 +246,7 @@ async def on_message(message):
             COL = pytz.timezone('America/Bogota')
             today = datetime.now(tz=COL)
             res = today.strftime("%d/%m/%Y %H:%M:%S")
-            cursorObj.execute('SELECT COUNT(*) from saludos')
+            cursorObj.execute('SELECT COUNT(*) from salidas')
             cur_result = cursorObj.fetchone()
             rows = cur_result[0]
             entities = (rows + 1, usuario, str(res))
@@ -719,10 +719,10 @@ async def on_message(message):
                     'https://res.cloudinary.com/dw0butj4g/image/upload/v1611348195/pp_hl1xgr.jpg'
                 )
 
-                embed.add_field(name="La pregunta es:" + str(rows[0][1]),
-                                value=p,
+                embed.add_field(name="La pregunta es: " + str(rows[0][1]),
+                                value="No olvides responderla",
                                 inline=False)
-
+                print(p)
                 await message.channel.send(embed=embed)
 
     if message.content.startswith('$respuesta'):
@@ -764,10 +764,11 @@ async def on_message(message):
                 COL = pytz.timezone('America/Bogota')
                 today = datetime.now(tz=COL)
                 res = today.strftime("%d/%m/%Y %H:%M:%S")
-                cursorObj.execute('SELECT COUNT(*) from saludos')
+                cursorObj.execute('SELECT COUNT(*) from respuestas')
                 cur_result = cursorObj.fetchone()
                 rows = cur_result[0]
                 entities = (rows + 1, usuario, str(res), r)
+                print(rows)
                 cursorObj.execute(
                     'INSERT INTO respuestas(id, name, fecha,respuesta) VALUES(?, ?, ?,?)',
                     entities)
