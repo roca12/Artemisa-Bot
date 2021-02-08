@@ -8,6 +8,7 @@ import sqlite3
 from datetime import datetime
 from keep_alive import keep_alive
 import re
+import xlsxwriter
 
 client = discord.Client()
 veredictos = {
@@ -164,6 +165,12 @@ async def on_message(message):
             "(Solo profesores y administrador) Mostrar las respuestas de todos los participantes",
             inline=False)
 
+        embed.add_field(
+            name="$listahoy",
+            value=
+            "(Solo profesores y administrador) Generar archivo EXCEL de entradas y salidas, procurar hacerlo antes de eliminar las listas de asistencia",
+            inline=False)
+
         await message.channel.send(embed=embed)
 
     if message.content.startswith('$hola'):
@@ -190,6 +197,13 @@ async def on_message(message):
             cursorObj.execute('SELECT COUNT(*) from saludos')
             cur_result = cursorObj.fetchone()
             rows = cur_result[0]
+            roles = message.author.roles
+            admin = False
+            for rol in roles:
+              if rol.name=="@everyone":
+                continue
+              usuario+=" *"+rol.name+"*"
+                
             entities = (rows + 1, usuario, str(res))
             cursorObj.execute(
                 'INSERT INTO saludos(id, name, fecha) VALUES(?, ?, ?)',
@@ -249,6 +263,12 @@ async def on_message(message):
             cursorObj.execute('SELECT COUNT(*) from salidas')
             cur_result = cursorObj.fetchone()
             rows = cur_result[0]
+            roles = message.author.roles
+            admin = False
+            for rol in roles:
+              if rol.name=="@everyone":
+                continue
+              usuario+=" *"+rol.name+"*"
             entities = (rows + 1, usuario, str(res))
             cursorObj.execute(
                 'INSERT INTO salidas(id, name, fecha) VALUES(?, ?, ?)',
@@ -863,5 +883,105 @@ async def on_message(message):
         else:
             await message.channel.send(
                 ">>> No tienes permisos para ejecutar este comando")
+
+    if message.content.startswith('$listahoy'):
+        roles = message.author.roles
+        admin = False
+        for rol in roles:
+            if rol.name == 'Administrador' or rol.name == 'Profesor':
+                admin = True
+                break
+        if admin:
+          # Create a workbook and add a worksheet.
+          workbook = xlsxwriter.Workbook('Lista.xlsx')
+          worksheet = workbook.add_worksheet()
+
+          # Add a bold format to use to highlight cells.
+          cell_format = workbook.add_format(
+              {'bold': True, 'font_color': 'red', 'font_size': 30})
+          cell_format2 = workbook.add_format(
+              {'bold': False, 'font_color': 'black', 'font_size': 10})
+          cell_format3 = workbook.add_format(
+              {'bold': True, 'font_color': 'blue', 'font_size': 15})
+
+          # Some data we want to write to the worksheet.
+          con = sqlite3.connect('mydatabase.db')
+          cursorObj = con.cursor()
+          cursorObj.execute('SELECT * FROM saludos')
+          rows = cursorObj.fetchall()
+
+
+          # Start from the first cell. Rows and columns are zero indexed.
+          row = 2
+          col = 0
+
+          # titulos de las tablas
+
+          worksheet.merge_range('A1:D1', "Entradas", cell_format)
+          worksheet.merge_range('G1:J1', "Salidas", cell_format)
+
+          # subtitulos de columnas
+          worksheet.write("A2", "id", cell_format3)
+          worksheet.write("B2", "Nombre", cell_format3)
+          worksheet.write("C2", "Fecha", cell_format3)
+          worksheet.write("D2", "Curso", cell_format3)
+
+
+          worksheet.write("G2", "id", cell_format3)
+          worksheet.write("H2", "Nombre", cell_format3)
+          worksheet.write("I2", "Fecha", cell_format3)
+          worksheet.write("J2", "Curso", cell_format3)
+          # Iterate over the data and write it out row by row.
+
+          for id1, name, fecha in (rows):
+              worksheet.write(row, col,     id1, cell_format2)
+              worksheet.write(row, col + 1, name, cell_format2)
+              worksheet.write(row, col + 2, fecha, cell_format2)
+              cell = xlsxwriter.utility.xl_rowcol_to_cell(row, col+1)
+              #=IFERROR(MID('+str(cell)+';FIND("*";'+str(cell)+')+1;LEN('+str(cell)+')-FIND("*";'+str(cell)+')-1);"Sin rol")
+              worksheet.write_formula(
+                  row, col + 3, '=IFERROR(MID('+str(cell)+',FIND("*",'+str(cell)+')+1,LEN('+str(cell)+')-FIND("*",'+str(cell)+')-1),"Sin rol")')
+              row += 1
+
+          # Some data we want to write to the worksheet.
+          con = sqlite3.connect('mydatabase.db')
+          cursorObj = con.cursor()
+          cursorObj.execute('SELECT * FROM salidas')
+          rows = cursorObj.fetchall()
+
+
+          # Start from the first cell. Rows and columns are zero indexed.
+          row = 2
+          col = 6
+
+          # Iterate over the data and write it out row by row.
+          for id1, name, fecha in (rows):
+              worksheet.write(row, col,     id1, cell_format2)
+              worksheet.write(row, col + 1, name, cell_format2)
+              worksheet.write(row, col + 2, fecha, cell_format2)
+              cell = xlsxwriter.utility.xl_rowcol_to_cell(row, col+1)
+              #=IFERROR(MID('+str(cell)+';FIND("*";'+str(cell)+')+1;LEN('+str(cell)+')-FIND("*";'+str(cell)+')-1);"Sin rol")
+              worksheet.write_formula(
+                  row, col + 3, '=IFERROR(MID('+str(cell)+',FIND("*",'+str(cell)+')+1,LEN('+str(cell)+')-FIND("*",'+str(cell)+')-1),"Sin rol")')
+              row += 1
+
+          worksheet.set_column('A:A', 5)  # Column  E   width set to 20.
+          worksheet.set_column('G:G', 5)  # Column  E   width set to 20.
+
+          worksheet.set_column('B:B', 40)  # Column  E   width set to 20.
+          worksheet.set_column('H:H', 40)  # Column  E   width set to 20.
+
+          worksheet.set_column('C:C', 40)  # Column  E   width set to 20.
+          worksheet.set_column('I:I', 20)  # Column  E   width set to 20.
+
+          workbook.close()
+
+          await message.channel.send(file=discord.File('Lista.xlsx'))
+        else:
+            await message.channel.send(
+                ">>> No tienes permisos para ejecutar este comando")
+      
+
+
 keep_alive()
 client.run(os.getenv('TOKEN'))
