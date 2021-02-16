@@ -893,6 +893,7 @@ async def on_message(message):
                 break
         if admin:
           # Create a workbook and add a worksheet.
+          os.remove("Lista.xlsx")
           workbook = xlsxwriter.Workbook('Lista.xlsx')
           worksheet = workbook.add_worksheet()
 
