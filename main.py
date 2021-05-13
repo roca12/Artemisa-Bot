@@ -111,6 +111,7 @@ async def on_message(message):
         embed.add_field(name="$fecha",
                         value="Muestra la fecha y hora actual",
                         inline=False)
+        '''
         embed.add_field(name="$test",
                         value="Testea la conexión a la base de datos",
                         inline=False)
@@ -119,6 +120,7 @@ async def on_message(message):
             value=
             "(Solo Universidad ECCI) Muestra la lista de temas dentro de la base de datos (Paginas desde la 1 a la 5, cualquier otro numero no es valido)",
             inline=False)
+        '''
         embed.add_field(
             name="$hola",
             value=
@@ -132,22 +134,22 @@ async def on_message(message):
         embed.add_field(
             name="$listaestudiantesentrada",
             value=
-            "(Solo profesores y administrador) muestra la lista de entradas de participantes a clase",
+            "(Solo IED LOS ALPES Solo profesores y administrador) muestra la lista de entradas de participantes a clase",
             inline=False)
         embed.add_field(
             name="$listaestudiantessalida",
             value=
-            "(Solo profesores y administrador) muestra la lista de salidas de participantes a clase",
+            "(Solo IED LOS ALPES Solo profesores y administrador) muestra la lista de salidas de participantes a clase",
             inline=False)
         embed.add_field(
             name="$borrarlistado",
             value=
-            "(Solo profesores y administrador) borra las listas de entrada y salida de participantes",
+            "(Solo IED LOS ALPES Solo profesores y administrador) borra las listas de entrada y salida de participantes",
             inline=False)
         embed.add_field(
             name="$pregunta",
             value=
-            "(profesores y administrador) crear una nueva pregunta para que los estudiantes respondan\n(Estudiantes) ver la pregunta actualmente asignada",
+            "(Solo IED LOS ALPES profesores y administrador) crear una nueva pregunta para que los estudiantes respondan\n(Estudiantes) ver la pregunta actualmente asignada",
             inline=False)
         embed.add_field(
             name="$respuesta",
@@ -157,18 +159,18 @@ async def on_message(message):
         embed.add_field(
             name="$borrarpreguntarespuestas",
             value=
-            "(Solo profesores y administrador) borrar la pregunta y las respuestas de la base de datos",
+            "(Solo IED LOS ALPES Solo profesores y administrador) borrar la pregunta y las respuestas de la base de datos",
             inline=False)
         embed.add_field(
             name="$listarespuestas",
             value=
-            "(Solo profesores y administrador) Mostrar las respuestas de todos los participantes",
+            "(Solo IED LOS ALPES Solo profesores y administrador) Mostrar las respuestas de todos los participantes",
             inline=False)
 
         embed.add_field(
             name="$listahoy",
             value=
-            "(Solo profesores y administrador) Generar archivo EXCEL de entradas y salidas, procurar hacerlo antes de eliminar las listas de asistencia",
+            "(Solo IED LOS ALPES Solo profesores y administrador) Generar archivo EXCEL de entradas y salidas, procurar hacerlo antes de eliminar las listas de asistencia",
             inline=False)
 
         await message.channel.send(embed=embed)
@@ -424,7 +426,7 @@ async def on_message(message):
         res = today.strftime("%d/%m/%Y %H:%M:%S")
         await message.channel.send(">>> La fecha y hora actual es: " +
                                    str(res))
-
+    '''
     if message.content.startswith('$test'):
         miConexion = pymysql.connect(host='freedb.tech',
                                      user='freedbtech_main',
@@ -645,7 +647,7 @@ async def on_message(message):
             )
             miConexion.close()
             await message.channel.send(embed=embed)
-
+    '''
     if message.content.startswith('$pregunta'):
         roles = message.author.roles
         admin = False
